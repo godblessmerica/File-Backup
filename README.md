@@ -19,7 +19,7 @@ A lightweight .bat file for creating backups of important documents, folders, fi
 
 1. Download the .bat from the  [latest release](https://github.com/godblessmerica/File-Backup/releases/latest)
 2. Put it in a separate folder
-- Example: downloads\file-backup\filebackup-v0.1.0-alpha.bat (this is where your backups will be stored as well)
+- Example: downloads\file-backup\filebackup-vX.X.X-alpha.bat (this is where your backups will be stored as well)
 4. Run the .bat file and it will automatically create a backup folder alongside it to store your backups
 5. Upload the files you with to backup!
 
