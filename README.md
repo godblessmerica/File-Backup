@@ -10,11 +10,6 @@ A lightweight .bat file for creating backups of important documents, folders, fi
 - Allows to add files to already created backup folders
 - Create new folders for individual files
 
-## Known Bugs
-
-- If file you want to backup is currently being used in another application the batch file will run into a error
-- This project is in alpha there is probably many bugs I'm unaware about please report them in [Issues](https://github.com/godblessmerica/File-Backup/issues)
-
 ## Usage
 
 1. Download the .bat from the  [latest release](https://github.com/godblessmerica/File-Backup/releases/latest)
@@ -22,6 +17,11 @@ A lightweight .bat file for creating backups of important documents, folders, fi
 - Example: downloads\file-backup\filebackup-vx.x.x-alpha.bat (this is where your backups will be stored as well)
 4. Run the .bat file and it will automatically create a backup folder alongside it to store your backups
 5. Upload the files you with to backup!
+
+## Known Bugs
+
+- If file you want to backup is currently being used in another application the batch file will run into a error
+- This project is in alpha there is probably many bugs I'm unaware about please report them in [Issues](https://github.com/godblessmerica/File-Backup/issues)
 
 ## License
 
