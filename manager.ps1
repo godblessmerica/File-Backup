@@ -16,7 +16,7 @@ function Get-BackupSettings([string]$ConfigPath = (Join-Path $PSScriptRoot 'conf
     if (-not $Refresh -and $script:Settings -and $ConfigPath -eq (Join-Path $PSScriptRoot 'config.json')) { return $script:Settings }
     $settings = @{
         BackupRoot = '.backups'; LogDirectory = '.logs'
-        CompressionLevel = 5; LogCompressionLevel = 5
+        CompressionLevel = 5; LogCompressionLevel = 6
         DateFormat = '{year}-{month}-{day}_{hour}-{minute}-{second}'
         ExcludeFiles = @(); ExcludeFolders = @(); OverwriteExistingFiles = $true
         CompletionDelaySeconds = 2; CopyRetries = 3; RetryDelaySeconds = 5
@@ -30,7 +30,7 @@ function Get-BackupSettings([string]$ConfigPath = (Join-Path $PSScriptRoot 'conf
     }
     foreach ($name in 'CompressionLevel', 'LogCompressionLevel') {
         if ($settings[$name] -isnot [int] -and $settings[$name] -isnot [long] -or
-            $settings[$name] -notin 0, 1, 3, 5, 7, 9) { throw "$name must be 0, 1, 3, 5, 7, or 9." }
+            $settings[$name] -notin 0, 1, 3, 5, 6, 7, 9) { throw "$name must be 0, 1, 3, 5, 6, 7, or 9." }
     }
     foreach ($name in 'CompletionDelaySeconds', 'CopyRetries', 'RetryDelaySeconds') {
         if ($settings[$name] -isnot [int] -and $settings[$name] -isnot [long] -or
@@ -488,7 +488,7 @@ function New-ZipPlan([string]$SourcePath, [string]$Root, [string]$ExistingName) 
     return $plan
 }
 
-function Invoke-ZipBackup($Plan, [ValidateSet(0, 1, 3, 5, 7, 9)][int]$Level = 5) {
+function Invoke-ZipBackup($Plan, [ValidateSet(0, 1, 3, 5, 6, 7, 9)][int]$Level = 6) {
     $partial = $Plan.Destination + '.' + [guid]::NewGuid().ToString('N') + '.partial'
     Write-BackupEvent $Plan ($Plan.Operation + '_STARTED') "Compression level: $Level."
     try {
@@ -746,7 +746,7 @@ function Edit-BackupConfig([string]$ConfigPath = (Join-Path $PSScriptRoot 'confi
         $prompt = 'New value'
         if ($name -in 'ExcludeFiles', 'ExcludeFolders') { $prompt = 'Patterns separated by commas (blank clears list)' }
         elseif ($name -eq 'OverwriteExistingFiles') { $prompt = 'New value: true or false' }
-        elseif ($name -in 'CompressionLevel', 'LogCompressionLevel') { $prompt = 'New level: 0, 1, 3, 5, 7, or 9' }
+        elseif ($name -in 'CompressionLevel', 'LogCompressionLevel') { $prompt = 'New level: 0, 1, 3, 5, 6, 7, or 9' }
         $answer = Read-BackupInput $prompt
         if ($null -eq $answer) { continue }
         try {
