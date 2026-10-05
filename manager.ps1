@@ -16,7 +16,7 @@ function Get-BackupSettings([string]$ConfigPath = (Join-Path $PSScriptRoot 'conf
     if (-not $Refresh -and $script:Settings -and $ConfigPath -eq (Join-Path $PSScriptRoot 'config.json')) { return $script:Settings }
     $settings = @{
         BackupRoot = '.backups'; LogDirectory = '.logs'
-        CompressionLevel = 5; LogCompressionLevel = 6
+        CompressionLevel = 6; LogCompressionLevel = 6
         DateFormat = '{year}-{month}-{day}_{hour}-{minute}-{second}'
         ExcludeFiles = @(); ExcludeFolders = @(); OverwriteExistingFiles = $true
         CompletionDelaySeconds = 2; CopyRetries = 3; RetryDelaySeconds = 5
