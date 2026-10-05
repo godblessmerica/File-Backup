@@ -1,0 +1,17 @@
+{
+    "CompressionLevel":  5,
+    "DateFormat":  "{year}-{month}-{day}_{hour}-{minute}-{second}",
+    "BackupRoot":  ".backups",
+    "LogDirectory":  ".logs",
+    "LogCompressionLevel":  5,
+    "ExcludeFiles":  [
+
+                     ],
+    "ExcludeFolders":  [
+
+                       ],
+    "OverwriteExistingFiles":  true,
+    "CopyRetries":  3,
+    "RetryDelaySeconds":  5,
+    "CompletionDelaySeconds":  3
+}
