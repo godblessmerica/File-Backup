@@ -1,6 +1,12 @@
 # File Backup
 > This project is in alpha and is for testing and feedback it is not complete and may or may not change further. So expect bugs.
 
+| Main menu | Create ZIP backup |
+| --- | --- |
+| ![FileBackup main menu](assets/menu.png) | ![Creating a ZIP backup](assets/newzip.png) |
+| **Backup complete** | **Browse files** |
+| ![Backup completed](assets/complete.png) | ![Browsing backup files](assets/viewfiles.png) |
+
 A lightweight .bat file for creating backups of important documents, folders, files and more!
 
 ## Features
