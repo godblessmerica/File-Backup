@@ -60,7 +60,7 @@ Use **Edit config** or edit `config.json`, then restart the application.
 | Settings | Purpose |
 | --- | --- |
 | `BackupRoot`, `LogDirectory` | Storage paths; default `.backups` and `.logs` |
-| `CompressionLevel`, `LogCompressionLevel` | ZIP and gzip levels: `0`, `1`, `3`, `5`, `7`, `9`; default `5` |
+| `CompressionLevel`, `LogCompressionLevel` | ZIP and gzip levels: `0`, `1`, `3`, `5`, `6`,  `7`, `9`; default `6` |
 | `ExcludeFiles`, `ExcludeFolders` | Exclusion patterns, such as `*.tmp` or `cache` |
 | `OverwriteExistingFiles` | Update existing files (`true`) or only add missing files (`false`) |
 | `CopyRetries`, `RetryDelaySeconds` | Copy retries and delay; defaults `3` and `5` seconds |
