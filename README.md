@@ -30,7 +30,7 @@ A lightweight .bat file for creating backups of important documents, folders, fi
 ## Getting started
 1. Grab the .bat from the  [latest release](https://github.com/godblessmerica/File-Backup/releases/latest)
 2. Put it in a separate folder
-- Example: downloads\file-backup\filebackup-vx.x.x-alpha.bat (this is where your backups will be stored as well)
+- Example: C:\Users\user\filebackup-v0.2.0\ (this is where your backups will be stored as well)
 3. Run the .bat file and it will automatically create a backup and logs folder along with config and manager for the ui, zips, and logs.
 4. Select a action with arrow keys
 
