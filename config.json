@@ -1,9 +1,9 @@
 {
-    "CompressionLevel":  5,
+    "CompressionLevel":  6,
     "DateFormat":  "{year}-{month}-{day}_{hour}-{minute}-{second}",
     "BackupRoot":  ".backups",
     "LogDirectory":  ".logs",
-    "LogCompressionLevel":  5,
+    "LogCompressionLevel":  6,
     "ExcludeFiles":  [
 
                      ],
