@@ -1,6 +1,6 @@
 @echo off
 setlocal DisableDelayedExpansion
-title File Backup v0.2.0-alpha - by godblessmerica
+title File Backup v0.2.1-alpha - by godblessmerica
 mode con: cols=58 lines=28
 set "FILEBACKUP_BOOTSTRAP=%~f0"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; $self=$env:FILEBACKUP_BOOTSTRAP; $text=[IO.File]::ReadAllText($self); $root=[IO.Path]::GetDirectoryName($self); foreach($name in @('manager.ps1','config.json')) { $target=Join-Path $root $name; if(-not (Test-Path -LiteralPath $target)) { $pattern='(?ms)^'+[regex]::Escape('### FILEBACKUP:BEGIN '+$name)+'\r?\n(.*?)\r?\n'+[regex]::Escape('### FILEBACKUP:END '+$name)+'\r?$'; $match=[regex]::Match($text,$pattern); if(-not $match.Success) { throw ('Missing embedded file: '+$name) }; [byte[]]$bytes=[Text.Encoding]::UTF8.GetPreamble()+[Text.Encoding]::UTF8.GetBytes($match.Groups[1].Value+[Environment]::NewLine); $stream=[IO.File]::Open($target,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write); try { $stream.Write($bytes,0,$bytes.Length) } finally { $stream.Dispose() } } }; & (Join-Path $root 'manager.ps1')"
@@ -28,7 +28,7 @@ function Get-BackupSettings([string]$ConfigPath = (Join-Path $PSScriptRoot 'conf
         CompressionLevel = 6; LogCompressionLevel = 6
         DateFormat = '{year}-{month}-{day}_{hour}-{minute}-{second}'
         ExcludeFiles = @(); ExcludeFolders = @(); OverwriteExistingFiles = $true
-        CompletionDelaySeconds = 2; CopyRetries = 3; RetryDelaySeconds = 5
+        CopyRetries = 3; RetryDelaySeconds = 5
     }
     if (Test-Path -LiteralPath $ConfigPath) {
         $config = Get-Content -LiteralPath $ConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -41,7 +41,7 @@ function Get-BackupSettings([string]$ConfigPath = (Join-Path $PSScriptRoot 'conf
         if ($settings[$name] -isnot [int] -and $settings[$name] -isnot [long] -or
             $settings[$name] -notin 0, 1, 3, 5, 6, 7, 9) { throw "$name must be 0, 1, 3, 5, 6, 7, or 9." }
     }
-    foreach ($name in 'CompletionDelaySeconds', 'CopyRetries', 'RetryDelaySeconds') {
+    foreach ($name in 'CopyRetries', 'RetryDelaySeconds') {
         if ($settings[$name] -isnot [int] -and $settings[$name] -isnot [long] -or
             $settings[$name] -lt 0 -or $settings[$name] -gt [int]::MaxValue) { throw "$name must be a nonnegative integer." }
     }
@@ -77,8 +77,94 @@ function Write-BackupText([string]$Text = '', [ConsoleColor]$ForegroundColor, [s
     Write-Host $Text @options -NoNewline:$NoNewline
 }
 
+function Get-ProgressFile([string]$Line) {
+    if ($Line -match '\t+\s*(\d+)\s*\t(.+?)\s*$' -and -not $Matches[2].EndsWith('\')) {
+        return [pscustomobject]@{ Path = $Matches[2]; Size = [long]$Matches[1] }
+    }
+}
+
+function Start-BackupProgress($Plan, [hashtable]$Files) {
+    $script:BackupProgress = @{
+        Files = $Files; Done = @{}; Current = ''; CurrentPercent = 0
+        CompletedFiles = 0; CompletedBytes = [long]0
+        TotalBytes = [long](($Files.Values | Measure-Object -Sum).Sum)
+        ToolPercent = 0; IsZip = $false
+    }
+    if ([Console]::IsOutputRedirected) { return }
+    Clear-Host
+    Write-BackupText '========================================================='
+    Write-BackupText ('Running backup'.PadLeft([int]((57 + 'Running backup'.Length) / 2)))
+    Write-BackupText '========================================================='
+    Write-BackupText ''
+    $script:ProgressRow = [Console]::CursorTop
+    # Reserve the progress row, paths, and counters; updates never scroll the screen.
+    foreach ($line in 1..7) { Write-BackupText '' }
+    $script:ProgressSource = Get-BackupDisplayPath $Plan.Source
+    $script:ProgressDestination = Get-BackupDisplayPath $Plan.Destination
+    $script:ProgressLastDraw = [datetime]::MinValue
+    Show-BackupProgress 'Running backup' 0
+}
+
+function Get-BackupDisplayPath([string]$Path) {
+    if (Test-WithinPath $Path $PSScriptRoot) {
+        $short = '...\' + $Path.Substring($PSScriptRoot.TrimEnd('\').Length).TrimStart('\')
+    } else { $short = '...\' + (Split-Path -Path $Path -Leaf) }
+    if ($short.Length -gt 44) { $short = '...' + $short.Substring($short.Length - 41) }
+    return $short
+}
+
+function Format-BackupSize([long]$Bytes) {
+    if ($Bytes -ge 1GB) { return ('{0:0.##} GB' -f ($Bytes / 1GB)) }
+    if ($Bytes -ge 1MB) { return ('{0:0.##} MB' -f ($Bytes / 1MB)) }
+    if ($Bytes -ge 1KB) { return ('{0:0.##} KB' -f ($Bytes / 1KB)) }
+    return "$Bytes B"
+}
+
+function Set-BackupProgressFile([string]$Path) {
+    $state = $script:BackupProgress
+    if (-not $state.Files.ContainsKey($Path) -or $Path -eq $state.Current) { return }
+    if ($state.Current -and -not $state.Done.ContainsKey($state.Current)) {
+        $state.Done[$state.Current] = $true
+        $state.CompletedFiles++
+        $state.CompletedBytes += [long]$state.Files[$state.Current]
+    }
+    $state.Current = $Path
+    $state.CurrentPercent = 0
+}
+
+function Update-BackupToolProgress([string]$Line, [string]$Activity, [switch]$Zip, [string]$WorkingDirectory) {
+    $state = $script:BackupProgress
+    if ($Zip) {
+        $state.IsZip = $true
+        if ($Line -match '^\s*(?:\d+%\s+(?:\d+\s+)?)?[+T]\s+(.+?)\s*$') {
+            Set-BackupProgressFile ([IO.Path]::GetFullPath((Join-Path $WorkingDirectory $Matches[1])))
+        }
+    } else {
+        $file = Get-ProgressFile $Line
+        if ($file) { Set-BackupProgressFile $file.Path }
+    }
+    $percent = Get-ToolProgressPercent $Line
+    if ($percent -ge 0) {
+        if ($Zip) { $state.ToolPercent = $percent } else { $state.CurrentPercent = $percent }
+    }
+    Show-BackupProgress $Activity
+}
+
+function Get-BackupProgressMetrics([switch]$Complete) {
+    $state = $script:BackupProgress
+    if ($Complete) { return @{ Percent = 100; Files = $state.Files.Count; Bytes = $state.TotalBytes } }
+    $bytes = $state.CompletedBytes
+    if ($state.IsZip) {
+        $bytes = [Math]::Max($bytes, [long][Math]::Floor($state.TotalBytes * ($state.ToolPercent / 100.0)))
+    } elseif ($state.Current) {
+        $bytes += [long][Math]::Floor([long]$state.Files[$state.Current] * ($state.CurrentPercent / 100.0))
+    }
+    $percent = if ($state.TotalBytes -gt 0) { [int][Math]::Floor(100.0 * $bytes / $state.TotalBytes) } else { 0 }
+    return @{ Percent = [Math]::Min(99, $percent); Files = $state.CompletedFiles; Bytes = [Math]::Min($state.TotalBytes, $bytes) }
+}
+
 function Get-BackupProgressText([string]$Activity, [int]$Percent, [int]$Width) {
-    $barWidth = [Math]::Max(1, [Math]::Min(24, $Width - 24))
+    $barWidth = [Math]::Max(1, [Math]::Min(30, $Width - 8))
     if ($Percent -lt 0) {
         $bar = '-' * $barWidth
         $status = 'Working'
@@ -88,7 +174,7 @@ function Get-BackupProgressText([string]$Activity, [int]$Percent, [int]$Width) {
         $bar = ('=' * $filled) + ('-' * ($barWidth - $filled))
         $status = "$Percent%"
     }
-    $text = "[$bar] $status $Activity"
+    $text = "[$bar] $status"
     if ($text.Length -gt $Width) { $text = $text.Substring(0, $Width) }
     return $text.PadRight($Width)
 }
@@ -116,7 +202,23 @@ function Show-BackupProgress([string]$Activity, [int]$Percent = -1, [ConsoleColo
         try {
             [Console]::SetCursorPosition(0, $script:ProgressRow)
             [Console]::ForegroundColor = $Color
+            if ($script:BackupProgress) {
+                $metrics = Get-BackupProgressMetrics -Complete:($Color -eq 'Green')
+                if ($Color -ne 'Red') { $Percent = $metrics.Percent }
+            }
             [Console]::Write((Get-BackupProgressText $Activity $Percent $width))
+            if ($script:BackupProgress) {
+                [Console]::ForegroundColor = $oldColor
+                $lines = @('', "Source:      $script:ProgressSource", "Destination: $script:ProgressDestination", '',
+                    "Files: $($metrics.Files) / $($script:BackupProgress.Files.Count)",
+                    "Processed: $(Format-BackupSize $metrics.Bytes) / $(Format-BackupSize $script:BackupProgress.TotalBytes)")
+                for ($index = 0; $index -lt $lines.Count; $index++) {
+                    [Console]::SetCursorPosition(0, $script:ProgressRow + $index + 1)
+                    $text = [string]$lines[$index]
+                    if ($text.Length -gt $width) { $text = $text.Substring(0, $width) }
+                    [Console]::Write($text.PadRight($width))
+                }
+            }
         } finally {
             [Console]::ForegroundColor = $oldColor
             [Console]::SetCursorPosition($left, $top)
@@ -423,15 +525,24 @@ function Invoke-Backup($Plan) {
         }
         # Linked directories are excluded; symbolic links are copied without following their targets.
         $settings = Get-BackupSettings
-        $arguments += @('/Z', "/R:$($settings.CopyRetries)", "/W:$($settings.RetryDelaySeconds)", '/XJ', '/SL', '/COPY:DAT', '/DCOPY:T', '/TEE', "/UNILOG+:$($Plan.Log)")
+        $arguments += @('/Z', "/R:$($settings.CopyRetries)", "/W:$($settings.RetryDelaySeconds)", '/XJ', '/SL', '/COPY:DAT', '/DCOPY:T', '/BYTES', '/FP')
         if (-not $settings.OverwriteExistingFiles) { $arguments += @('/XC', '/XN', '/XO') }
         if ($settings.ExcludeFiles.Count) { $arguments += @('/XF') + $settings.ExcludeFiles }
         if ($settings.ExcludeFolders.Count) { $arguments += @('/XD') + $settings.ExcludeFolders }
+        $files = @{}
+        & robocopy.exe @arguments /L /NJH /NJS | ForEach-Object {
+            $file = Get-ProgressFile ([string]$_)
+            if ($file -and ($file.Path -eq $Plan.Source -or ($Plan.IsDirectory -and (Test-WithinPath $file.Path $Plan.Source)))) {
+                $files[$file.Path] = $file.Size
+            }
+        }
+        if ($LASTEXITCODE -ge 8) { throw 'Cannot scan files for backup.' }
+        Start-BackupProgress $Plan $files
+        $arguments += @('/TEE', "/UNILOG+:$($Plan.Log)")
         $activity = if ($Plan.Operation -eq 'BACKUP_UPDATE') { 'Adding current file' } else { 'Uploading current file' }
         Show-BackupProgress $activity
         & robocopy.exe @arguments | ForEach-Object {
-            $percent = Get-ToolProgressPercent ([string]$_)
-            if ($percent -ge 0) { Show-BackupProgress $activity $percent }
+            Update-BackupToolProgress ([string]$_) $activity
         }
         $copyCode = $LASTEXITCODE
         if ($copyCode -ge 8) {
@@ -514,37 +625,50 @@ function Invoke-ZipBackup($Plan, [ValidateSet(0, 1, 3, 5, 6, 7, 9)][int]$Level =
         }
         $settings = Get-BackupSettings
         $exclusions = @()
-        $items = @()
-        if ($settings.ExcludeFiles.Count -or $settings.ExcludeFolders.Count) {
-            $items = if ($Plan.IsDirectory) { Get-ChildItem -LiteralPath $Plan.Source -Recurse -Force }
-                     else { Get-Item -LiteralPath $Plan.Source -Force }
-        }
+        $items = if ($Plan.IsDirectory) { @(Get-ChildItem -LiteralPath $Plan.Source -Recurse -Force) }
+                 else { @(Get-Item -LiteralPath $Plan.Source -Force) }
+        $excludedPaths = @()
         foreach ($item in $items) {
             $relative = $item.FullName.Substring($workingDirectory.TrimEnd('\').Length + 1)
             $patterns = if ($item.PSIsContainer) { $settings.ExcludeFolders } else { $settings.ExcludeFiles }
             foreach ($pattern in $patterns) {
                 if ($item.Name -like $pattern -or $relative -like $pattern -or $item.FullName -like $pattern) {
                     $exclusions += ('-x!' + $relative)
+                    $excludedPaths += $item.FullName
                     break
                 }
             }
         }
+        $files = @{}
+        foreach ($item in $items) {
+            if ($item.PSIsContainer) { continue }
+            $excluded = $false
+            foreach ($path in $excludedPaths) {
+                if (Test-WithinPath $item.FullName $path) { $excluded = $true; break }
+            }
+            if (-not $excluded) { $files[$item.FullName] = [long]$item.Length }
+        }
+        Start-BackupProgress $Plan $files
         Push-Location -LiteralPath $workingDirectory
         try {
             $method = if ($Level -eq 0) { 'Copy' } else { 'Deflate' }
             Show-BackupProgress 'Creating ZIP'
-            & $sevenZip a -tzip "-mm=$method" "-mx=$Level" -spd $partial -bsp1 @exclusions -- $inputPath 2>&1 |
+            & $sevenZip a -tzip "-mm=$method" "-mx=$Level" -spd $partial -bb1 -bsp1 @exclusions -- $inputPath 2>&1 |
                 Tee-Object -FilePath $Plan.Log -Append | ForEach-Object {
-                    $percent = Get-ToolProgressPercent ([string]$_)
-                    if ($percent -ge 0) { Show-BackupProgress 'Creating ZIP' $percent }
+                    Update-BackupToolProgress ([string]$_) 'Creating ZIP' -Zip -WorkingDirectory $workingDirectory
                 }
             if ($LASTEXITCODE -ne 0) { throw "ZIP creation failed. Log: $($Plan.Log)" }
         } finally { Pop-Location }
         $script:ProgressLastDraw = [datetime]::MinValue
+        $script:BackupProgress.Current = ''
+        $script:BackupProgress.CurrentPercent = 0
+        $script:BackupProgress.ToolPercent = 0
+        $script:BackupProgress.CompletedFiles = 0
+        $script:BackupProgress.CompletedBytes = [long]0
+        $script:BackupProgress.Done = @{}
         Show-BackupProgress 'Verifying ZIP'
-        & $sevenZip t -tzip -bsp1 $partial 2>&1 | Tee-Object -FilePath $Plan.Log -Append | ForEach-Object {
-            $percent = Get-ToolProgressPercent ([string]$_)
-            if ($percent -ge 0) { Show-BackupProgress 'Verifying ZIP' $percent }
+        & $sevenZip t -tzip -bb1 -bsp1 $partial 2>&1 | Tee-Object -FilePath $Plan.Log -Append | ForEach-Object {
+            Update-BackupToolProgress ([string]$_) 'Verifying ZIP' -Zip -WorkingDirectory $workingDirectory
         }
         if ($LASTEXITCODE -ne 0) { throw "ZIP verification failed. Log: $($Plan.Log)" }
         [IO.File]::Move($partial, $Plan.Destination)
@@ -560,7 +684,7 @@ function Invoke-ZipBackup($Plan, [ValidateSet(0, 1, 3, 5, 6, 7, 9)][int]$Level =
     }
 }
 
-function Show-BackupScreen([string]$Heading = 'File Backup v0.2.0-alpha') {
+function Show-BackupScreen([string]$Heading = 'File Backup v0.2.1-alpha') {
     Clear-Host
     $script:ProgressLastDraw = [datetime]::MinValue
     $script:ProgressRow = $null
@@ -743,7 +867,7 @@ function Save-BackupConfigValue([string]$Name, $Value, [string]$ConfigPath = (Jo
 
 function Edit-BackupConfig([string]$ConfigPath = (Join-Path $PSScriptRoot 'config.json')) {
     $names = @('BackupRoot', 'LogDirectory', 'CompressionLevel', 'LogCompressionLevel', 'DateFormat',
-        'ExcludeFiles', 'ExcludeFolders', 'OverwriteExistingFiles', 'CompletionDelaySeconds', 'CopyRetries', 'RetryDelaySeconds')
+        'ExcludeFiles', 'ExcludeFolders', 'OverwriteExistingFiles', 'CopyRetries', 'RetryDelaySeconds')
     while ($true) {
         $settings = Get-BackupSettings $ConfigPath -Refresh
         $labels = @($names | ForEach-Object { $_ + ': ' + (@($settings[$_]) -join ', ') })
@@ -766,7 +890,7 @@ function Edit-BackupConfig([string]$ConfigPath = (Join-Path $PSScriptRoot 'confi
             } elseif ($name -eq 'OverwriteExistingFiles') {
                 $value = $false
                 if (-not [bool]::TryParse($answer, [ref]$value)) { throw 'Enter true or false.' }
-            } elseif ($name -in 'CompressionLevel', 'LogCompressionLevel', 'CompletionDelaySeconds', 'CopyRetries', 'RetryDelaySeconds') {
+            } elseif ($name -in 'CompressionLevel', 'LogCompressionLevel', 'CopyRetries', 'RetryDelaySeconds') {
                 $value = 0
                 if (-not [int]::TryParse($answer, [ref]$value)) { throw 'Enter a whole number.' }
             }
@@ -924,14 +1048,10 @@ try {
             continue
         }
         $level = $request.Level
-        Write-BackupText 'Running backup...'
         if ($selection -eq '1') { Invoke-Backup $plan } else { Invoke-ZipBackup $plan $level }
-        Start-Sleep -Seconds $script:Settings.CompletionDelaySeconds
-        Show-BackupScreen (Get-BackupCompletionMessage $plan)
-        Write-BackupText "Backup Folder: $($plan.Destination)"
-        Write-BackupText "Log: $(Get-SavedLogPath $plan.Log)"
         Write-BackupText ''
-        Wait-BackupMenu
+        Write-BackupText 'Press anything to continue'
+        Read-BackupSelectionKey | Out-Null
     } catch {
         $errorMessage = $_.Exception.Message
         $session = [pscustomobject]@{ Source = 'FileBackup'; Destination = $BackupRoot; Log = $script:SessionLog }
@@ -972,7 +1092,6 @@ if ($NonInteractive) { exit $runExitCode }
   "ExcludeFiles": [],
   "ExcludeFolders": [],
   "OverwriteExistingFiles": true,
-  "CompletionDelaySeconds": 2,
   "CopyRetries": 3,
   "RetryDelaySeconds": 5
 }
