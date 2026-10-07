@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'">
+<title>FileBackup v0.3.1</title>
+<style>
+:root{color-scheme:dark;--bg:#1b1b19;--surface:#32322f;--pill:#252521;--ink:#f5f2e6;--muted:#bab7a9;--green:#83bf4f;--red:#ff514e;--yellow:#ffcc39;--accent:#ffc20e}
+*{box-sizing:border-box}body{margin:0;background-color:var(--bg);color:var(--ink);font:16px 'Segoe UI',sans-serif;padding:0}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit;background:var(--pill);border:1px solid transparent;border-radius:0;padding:12px 20px;transition:background .15s,border-color .15s}button:hover{background:#3b382a;border-color:#ffc20e}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:3px}button:disabled{cursor:default;color:#8b9395;opacity:.55}button:disabled:hover{background:var(--pill);border-color:transparent}h1{font-size:22px;font-weight:500;margin:0 auto 0 0;white-space:nowrap}h1 small{font-size:15px;color:var(--muted)}main{width:100%;margin:0;background:var(--bg);border-radius:0;min-height:100vh;display:flex;flex-direction:column;overflow:hidden}.toolbar{background:var(--surface);display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:16px;padding:12px 16px;border-radius:0}.toolbar button:not(.icon){min-width:185px}.icon{width:44px;height:44px;padding:11px;display:inline-flex;align-items:center;justify-content:center}.icon svg{width:20px;height:20px;fill:none;stroke:var(--accent);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.section-title{font-size:16px;font-weight:400;text-align:center;padding:16px;margin:0}.cards{background:#11110f;padding:18px 16px;display:flex;gap:16px;flex-wrap:wrap;min-height:102px}.card{background:var(--pill);border-radius:0;padding:10px 12px;display:flex;align-items:center;gap:2px;max-width:350px;position:relative}.card.profile{padding-top:25px;margin-top:10px}.auto{position:absolute;top:-10px;left:-1px;background:var(--pill);border-radius:0;padding:8px 18px;font-size:13px;color:var(--muted)}.dot{display:inline-block;width:13px;height:13px;border-radius:0;background:#777f82;vertical-align:middle;margin-left:6px}.complete .dot{background:var(--green)}.running .dot{background:var(--yellow)}.failed .dot,.cancelled .dot{background:var(--red)}.card .name{padding:8px 10px;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}.card .icon{width:32px;height:32px;padding:7px}.empty{color:var(--muted);font-size:14px;padding:16px 8px}.automatic{border-radius:0;background:var(--bg)}.auto-area{flex:1;background:#11110f;min-height:145px;padding:24px;text-align:center}.badge{font-size:12px;color:var(--muted);background:#303536;border-radius:0;padding:4px 10px;margin-left:10px}.statuses{display:flex;gap:8px;justify-content:flex-end;padding:14px;background:#11110f;flex-wrap:wrap;min-height:64px}.status{width:320px;max-width:100%;background:var(--pill);border-radius:0;padding:3px 7px;position:relative}.status-row{display:flex;align-items:center}.status button{padding:6px;border-radius:0}.status .label{max-width:245px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}.status .close{color:var(--muted)}.status-meter{display:grid;grid-template-columns:minmax(0,1fr) 28px;align-items:center;gap:5px;margin:2px 8px 5px;height:12px}.status progress{grid-area:1/1;width:100%;height:5px;margin:0;appearance:none;border:0;background:#57564a}.status progress::-webkit-progress-bar{background:#57564a}.status progress::-webkit-progress-value{background:var(--yellow)}.status.complete progress::-webkit-progress-value{background:var(--green)}.status.failed progress::-webkit-progress-value,.status.cancelled progress::-webkit-progress-value{background:var(--red)}.status small{grid-area:1/2;font-size:10px;text-align:right}.complete progress{accent-color:var(--green)}.failed progress,.cancelled progress{accent-color:var(--red)}progress{accent-color:var(--yellow)}.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0006;backdrop-filter:blur(9px);z-index:10;padding:20px}.overlay[hidden]{display:none}.dialog{background:var(--surface);border-radius:0;width:380px;max-height:calc(100vh - 40px);overflow:auto;box-shadow:0 30px 100px #0009}.dialog.wide{width:620px}.dialog header{background:var(--pill);padding:22px 24px;position:relative;text-align:center;border-radius:0}.dialog h2{margin:0;font-size:18px;font-weight:500}.dialog header .icon{position:absolute;right:7px;top:9px}.content{padding:18px 26px 24px}label{display:block;color:#dbe0e1;margin-bottom:5px;font-size:17px}.field{margin-bottom:15px}input[type=text],input[type=number],input[type=time],select,textarea{background:var(--pill);border:1px solid transparent;border-radius:0;color:var(--ink);padding:10px 12px;width:100%;min-width:0}input:hover,select:hover,textarea:hover{border-color:#687579}input[type=number]{appearance:textfield}textarea{resize:vertical;min-height:70px}.hint{display:block;color:var(--muted);font-size:12px;margin-top:4px;line-height:1.5}.picker{display:flex;gap:5px;margin-top:6px}.picker button{font-size:12px;flex:1;padding:6px}.toggle-row{background:var(--pill);border-radius:0;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.toggle-row label{margin:0;font-size:15px}.switch{appearance:none;width:43px;height:24px;border-radius:0;background:#5f686b;position:relative;cursor:pointer}.switch:before{content:'';position:absolute;width:18px;height:18px;top:3px;left:3px;background:white;border-radius:0;transition:left .15s}.switch:checked{background:#659c40}.switch:checked:before{left:22px}.switch:disabled{opacity:.45;cursor:default}.primary{width:100%;border-radius:0;margin-top:10px}.danger{background:#c83d3b;color:white}.danger:hover{background:#de4b48}.actions{display:flex;gap:10px;margin-top:18px}.actions button{flex:1;border-radius:0}.error{color:#ffb0ad;font-size:13px;white-space:pre-wrap;margin:10px 0}.error:empty{display:none}.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}.span2{grid-column:1/-1}.slider-line{display:flex;gap:16px;align-items:center}.slider-line input{flex:1}.slider-line output{min-width:22px}.progress-main{width:100%;height:14px;margin:15px 0}.details{font-size:14px;color:#dbe0e1;line-height:1.8;overflow-wrap:anywhere}.details p{margin:8px 0}.job-detail{background:var(--pill);border-radius:0;padding:12px;font-size:12px;max-height:110px;overflow:auto;white-space:pre-wrap}.toast{position:fixed;bottom:20px;left:20px;background:#813633;border:1px solid #ffaaa1;border-radius:0;padding:14px;max-width:450px;z-index:20;box-shadow:0 8px 30px #0008}.toast[hidden]{display:none}@media(max-width:850px){body{padding:0}.toolbar{gap:6px}.toolbar button:not(.icon){min-width:0;flex:1;font-size:14px;padding:12px}.settings-grid{grid-template-columns:1fr}.span2{grid-column:auto}}
+.card{isolation:isolate}.card .name{background:transparent;border-color:transparent}.card .name::before{content:'';position:absolute;inset:-1px;border-radius:0;z-index:-1;border:1px solid transparent;transition:background .15s,border-color .15s}.card .name:hover::before{background:#3b382a;border-color:#ffc20e}.card .name:focus-visible{outline:none}.card .name:focus-visible::before{outline:2px solid var(--accent);outline-offset:3px}.card .auto,.card .icon{z-index:1}.card .icon{position:relative}
+
+body{font-family:'Cascadia Mono','Consolas',monospace}h1{display:flex;align-items:center;gap:10px;font-size:21px}h1 small{font-size:13px}.brand-logo{width:34px;height:34px;image-rendering:pixelated;flex-shrink:0}.toolbar{border-bottom:2px solid var(--accent)}button{border-color:#57564a;box-shadow:2px 2px 0 #11110f}.icon{box-shadow:none}#settingsButton{box-shadow:2px 2px 0 #11110f}.section-title{color:#e9dca8;letter-spacing:.5px}.card{border:1px solid #57564a}.card .name{box-shadow:none}.card.profile .auto{border:1px solid #57564a;border-bottom:0;color:#bab7a9}.primary:not(.danger){background:var(--accent);color:#171711;border:1px solid #d19e00;font-weight:bold}.primary:not(.danger):hover{background:#ffd252}input[type=text],input[type=number],input[type=time],select,textarea{border-color:#57564a}input[type=range]{accent-color:var(--accent)}.switch{background:#65645b}.switch:checked{background:#bd9418}.switch:before{background:#faf6e8}.dialog{border:1px solid #65604a;box-shadow:8px 8px 0 #0008}.dialog header{border-bottom:2px solid var(--accent)}.status{border:1px solid #57564a}.badge{background:#3c3b32}.job-detail{border:1px solid #57564a}
+.status .dismiss-track{grid-area:1/1;height:5px;margin:0;background:#57564a;overflow:hidden}.status .dismiss-fill{display:block;width:100%;height:100%;background:var(--green);transform:scaleX(0);transform-origin:left}.status.failed .dismiss-fill,.status.cancelled .dismiss-fill{background:var(--red)}
+.status{isolation:isolate}.status .label{background:transparent;border-color:transparent;box-shadow:none}.status .label::before{content:'';position:absolute;inset:-1px;z-index:-1;border:1px solid transparent;transition:background .15s,border-color .15s}.status .label:hover::before{background:#3b382a;border-color:var(--accent)}.status .label:focus-visible{outline:none}.status .label:focus-visible::before{outline:2px solid var(--accent);outline-offset:3px}.status .close{position:relative;z-index:1;width:24px;height:24px;flex-shrink:0;padding:0;line-height:22px;box-shadow:none}.status .label{flex:1;min-width:0;max-width:none;height:30px;line-height:18px;text-align:left}.status .dot{flex-shrink:0}.status .dot,.status progress,.status small,.status .dismiss-track{pointer-events:none}.status.update-status .close{width:auto;padding:0 6px;font-size:12px}.update-status{border-color:var(--accent)}
+</style></head><body>
+<main><div class="toolbar"><h1><img class="brand-logo" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAADn0lEQVR4nO1aQXIUMQzUCB9D8qFkcyRXiqfAM+BRbCpvgQuH7D1rKjWWPGpJzHIhVdh9yO6MJI9ZyVJLA9HExMTExMTExMSYWDLB07elvn7WGls4wwpfliUUL+2brHv7Jd/DvwDT4CippLlI3FPRUeJCuS0er91ie62e1wgCvTcC0+AomUA9jme+H2b7BSJC7Jc1lWz8nCWRtwHT4FgywdPX5rr24VWtZ/uZRi1ZZpVXWbbp98iwuUAeqynFbRlyjO4Txav89rNf6RXDR0ChFDU84z03xBHRzYAHqOdX/PjF1nMVfOFSC1YR/nMRcSH0EqoxDY6SStAD4HBMDY4xWrHjB3L18cNVrK+8AviGrKL8Qu9s/m722/TOD6uID89mJabBUXKRZFfwsLhe71vX6A+PISF8AJmiiIE/KBOFDag5LuM3ahSycsc0OEom+NmytC+7UNebuB+5uM4viWcwkvTsti89BaCH47q/oaIXgWlwlEwgP+Cnh6uk3be8oFeFehFzE4bYcw1kcSRuEHlZ9el8AfaVZAGmwVEyQc/mciM72zETFA94F8W9RVeLI6QzULuPdF/KC+w8AsE0OEoqUcqftGVQz/XMQd3N5gLZfAGLhUspzgx5iFQPSVbQwwCYBkdJJXgmIQurRzESxAoofPesrdO+GoSP33gUN4h8AUMKNgRgGhzl8m4wZn7ul4WqwPen0E7WrcebVe9wCqvJucnd9uA5ur9kgDV7gb9mghXOlDvTMIuD3sC9Hni8iet0jSNCsEgEfX/f7LP3CcAHajZ7tGAaHCUTZHXcNQWOKYrYnjq+s2f8RTyt1L7ZH57b89okZ9fzWAXaZzYvADANjrKngLO1fh+5ervCMizZ+Xi9fmL21ivQa/ff3a8RcW73XXLBLtEu7yMTwDQ4yqWK2oZDofVznpgXuKbQHenmqeZxyd7qeT8EBHu5nXSBSRlgGhwlFyG3RyIgl9INWmstGo/27HvPL6AHs0FPPcMHucmUyqWXif+VTIOj7Cn0IhDP/nCSg4aaE9yrJZj3Z296XHtouT/OKHGQgLQFwTQ4Si6Cuq9vZiQScBJDZm6QZWeF/n8BsY/tXH8P84BOC3ZGSAmYBkdJJTh5AQf4iY1cometfq8GsceTV4cbBftgV4VwYzjbBDANjmVP4Xy8ribr4hseZIg6OQKO7uo16hs1PzeA5+M02Pf/0APINu5OxpD3foCJiYmJiYmJiYkJ+i/xGxfatNTBdrOMAAAAAElFTkSuQmCC">FileBackup <small>v0.3.1 alpha</small></h1><button onclick="compressDialog()">+ Compress backup</button><button onclick="profileDialog()">+ Create a profile</button><button onclick="backupDialog()">+ Create a backup</button><button class="icon" aria-label="Settings" title="Settings" onclick="settingsDialog()" id="settingsButton"></button></div>
+<h2 class="section-title">Profiles</h2><div class="cards" id="profiles"></div>
+<h2 class="section-title">Backups</h2><div class="cards" id="backups"></div>
+<h2 class="section-title automatic">Automatic Backups <span class="badge">Unavailable</span></h2><div class="auto-area"><button disabled>Automatic backups are not available yet</button><p class="hint">Profiles can be run manually.</p></div>
+<div class="statuses" id="statuses" aria-label="Backup status"></div></main>
+<div class="overlay" id="overlay" hidden><section class="dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><header><h2 id="modalTitle"></h2><button class="icon" onclick="closeModal()" title="Close" aria-label="Close popup">×</button></header><div class="content" id="modalContent"></div></section></div>
+<div class="toast" id="toast" hidden role="alert"></div>
+<script>
+'use strict';
+let state={config:{},profiles:[],backups:[]}, jobs=new Map(), hiddenJobs=new Set(), modalKind='', detailId='', previousFocus=null;
+const dismissAnimations=new Map();
+const $=id=>document.getElementById(id), esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const paths={edit:'M4 20l4-1 12-12-4-4L4 15z M13 6l4 4',trash:'M3 6h18 M9 6V3h6v3 M5 6l1 15h12l1-15 M10 10v7 M14 10v7'};
+const icon=name=>name==='settings'?'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--accent)" stroke="none" fill-rule="evenodd" d="M9 2h6v3h3V3h3v3h-2v3h3v6h-3v3h2v3h-3v-2h-3v3H9v-3H6v2H3v-3h2v-3H2V9h3V6H3V3h3v2h3z M9 9v6h6V9z"></path></svg>':`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[name]}"></path></svg>`;
+$('settingsButton').innerHTML=icon('settings');
+function send(action,data={}){if(window.ipc)window.ipc.postMessage(JSON.stringify({action,data}));else toast('Preview only: run the EXE to use backup actions.');}
+function toast(message){$('toast').textContent=message;$('toast').hidden=false;setTimeout(()=>$('toast').hidden=true,7000)}
+function receive(message){
+ if(message.type==='update')renderUpdate(message);
+ if(message.type==='snapshot'){state=message;renderCards();if(message.closeModal)closeModal();}
+ if(message.type==='picked'){const field=$(message.field);if(field)field.value=message.path;}
+ if(message.type==='error'){if(!$('overlay').hidden){$('modalError').textContent=message.message;const submit=$('submit');if(submit)submit.disabled=false;}else toast(message.message);}
+ if(message.type==='job'||message.type==='finished'){const old=jobs.get(message.id)||{};jobs.set(message.id,{...old,...message});if(message.type==='job'&&message.name){closeModal();}renderJobs();if(modalKind==='details'&&detailId===message.id)updateDetails();
+  const dismissible=['complete','cancelled','failed'].includes(message.state);
+  if(!dismissible||old.state!==message.state){dismissAnimations.get(message.id)?.cancel();dismissAnimations.delete(message.id);}
+  if(dismissible&&old.state!==message.state&&!hiddenJobs.has(message.id)){
+   const seconds=state.config.CompletedStatusDismissSeconds??5;
+   if(seconds>0){
+    const chip=[...$('statuses').children].find(e=>e.dataset.jobId===message.id);
+    const animation=chip.querySelector('.dismiss-fill').animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:seconds*1000,easing:'linear',fill:'forwards'});
+    dismissAnimations.set(message.id,animation);
+    animation.onfinish=()=>dismissStatus(message.id);
+   }
+  }
+ }
+}
+function cardButton(label,action,svg){const b=document.createElement('button');b.className='icon';b.title=label;b.setAttribute('aria-label',label);b.innerHTML=icon(svg);b.onclick=action;return b;}
+function renderCards(){
+ $('profiles').replaceChildren();$('backups').replaceChildren();
+ for(const profile of state.profiles){const card=document.createElement('div');card.className='card profile';const auto=document.createElement('span');auto.className='auto';auto.innerHTML='auto <span class="dot"></span>';auto.title='Automation unavailable';card.append(auto);const name=document.createElement('button');name.className='name';name.textContent=profile.name.replace(/\{(?:year|month|day|hour|minute|second|time)\}/g,'').replace(/^[\s_-]+|[\s_-]+$/g,'')||'Profile';name.title=`Back up ${profile.source}`;name.onclick=()=>start({name:profile.name,source:profile.source,zip:profile.zip});card.append(name,cardButton('Edit profile',()=>profileDialog(profile),'edit'),cardButton('Delete profile',()=>deleteDialog('profile',profile),'trash'));$('profiles').append(card);}
+ for(const backup of state.backups){const card=document.createElement('div');card.className='card';const name=document.createElement('button');name.className='name';name.textContent=backup.name;name.title='Open in Explorer';name.onclick=()=>send('openBackup',{name:backup.name});card.append(name,cardButton('Rename backup',()=>renameDialog(backup),'edit'),cardButton('Delete backup',()=>deleteDialog('backup',backup),'trash'));$('backups').append(card);}
+ if(!state.profiles.length)$('profiles').innerHTML='<div class="empty">No profiles yet. Click + Create a profile to get started.</div>';
+ if(!state.backups.length)$('backups').innerHTML='<div class="empty">No backups yet. Click + Create a backup to get started.</div>';
+}
+function renderUpdate(message){
+ let chip=$('updateStatus');
+ if(!message.version)return;
+ if(!chip){
+  chip=document.createElement('div');chip.id='updateStatus';chip.className='status update-status';
+  const row=document.createElement('div');row.className='status-row';
+  const update=document.createElement('button');update.className='close';update.textContent='Update';
+  update.onclick=()=>{
+   if([...jobs.values()].some(job=>job.state==='running')){toast('Wait for running backups before updating.');return;}
+   update.disabled=true;send('performUpdate');
+  };
+  const label=document.createElement('button');label.className='label';label.title='Open latest GitHub release';
+  label.onclick=()=>send('openUpdateRelease');
+  row.append(update,label);chip.append(row);$('statuses').prepend(chip);
+ }
+ chip.querySelector('.label').textContent=message.busy?'Downloading update…':message.version+' available';
+ chip.querySelector('.close').disabled=!!message.busy;
+ if(message.error)toast(message.error);
+}
+
+function dismissStatus(id){const animation=dismissAnimations.get(id);if(animation){animation.onfinish=null;animation.cancel();dismissAnimations.delete(id);}hiddenJobs.add(id);renderJobs();if(!(modalKind==='details'&&detailId===id)){jobs.delete(id);hiddenJobs.delete(id);}}
+function renderJobs(){
+ const container=$('statuses');
+ for(const chip of [...container.children])if(chip.dataset.jobId&&(hiddenJobs.has(chip.dataset.jobId)||!jobs.has(chip.dataset.jobId)))chip.remove();
+ for(const [id,job] of jobs){
+  if(hiddenJobs.has(id))continue;
+  let chip=[...container.children].find(e=>e.dataset.jobId===id);
+  if(!chip){
+   chip=document.createElement('div');chip.dataset.jobId=id;
+   const row=document.createElement('div');row.className='status-row';
+   const x=document.createElement('button');x.className='close';x.textContent='×';x.onclick=()=>jobs.get(id)?.state==='running'?cancelDialog(id):dismissStatus(id);
+   const label=document.createElement('button');label.className='label';label.title='Click for backup details';label.onclick=()=>detailsDialog(id);
+   const dot=document.createElement('span');dot.className='dot';row.append(x,label,dot);
+   const progress=document.createElement('progress');progress.max=100;
+   const percent=document.createElement('small');
+   const track=document.createElement('div');track.className='dismiss-track';track.setAttribute('role','timer');track.hidden=true;
+   const fill=document.createElement('span');fill.className='dismiss-fill';track.append(fill);
+   const meter=document.createElement('div');meter.className='status-meter';meter.append(progress,percent,track);chip.append(row,meter);container.append(chip);
+  }
+  const className=`status ${job.state}`;if(chip.className!==className)chip.className=className;
+  const x=chip.querySelector('.close');x.title=job.state==='running'?'Cancel backup':'Dismiss status';x.setAttribute('aria-label',x.title);x.disabled=job.state==='running'&&!!job.cancelRequested;
+  const label=chip.querySelector('.label'),text=`${job.name||'Backup'}: ${job.state}`;if(label.textContent!==text)label.textContent=text;
+  const progress=chip.querySelector('progress');progress.value=job.percent||0;progress.setAttribute('aria-label',`${job.name} progress`);
+  const percent=chip.querySelector('small'),value=`${job.percent||0}%`;if(percent.textContent!==value)percent.textContent=value;
+  const track=chip.querySelector('.dismiss-track'),timed=['complete','cancelled','failed'].includes(job.state)&&(dismissAnimations.has(id)||(state.config.CompletedStatusDismissSeconds??5)>0);
+  progress.hidden=timed;percent.hidden=timed;track.hidden=!timed;
+  track.setAttribute('aria-label',`Status dismisses after ${state.config.CompletedStatusDismissSeconds??5} seconds`);
+ }
+}
+function openModal(title,html,kind,wide=false){if($('overlay').hidden)previousFocus=document.activeElement;modalKind=kind;$('modalTitle').textContent=title;$('modalContent').innerHTML=html+'<div id="modalError" class="error" role="alert"></div>';$('dialog').classList.toggle('wide',wide);$('overlay').hidden=false;document.querySelector('main').inert=true;setTimeout(()=>{$('modalContent').querySelector('input,select,button')?.focus()},0)}
+function closeModal(){if(hiddenJobs.has(detailId)){jobs.delete(detailId);hiddenJobs.delete(detailId);}$('overlay').hidden=true;document.querySelector('main').inert=false;modalKind='';detailId='';previousFocus?.focus();}
+$('overlay').addEventListener('click',e=>{if(e.target===$('overlay'))closeModal()});
+document.addEventListener('keydown',e=>{if($('overlay').hidden)return;if(e.key==='Escape'){e.preventDefault();closeModal()}if(e.key==='Tab'){const focusable=[...$('dialog').querySelectorAll('button:not(:disabled),input:not(:disabled),select,textarea')].filter(e=>e.getClientRects().length);const first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});
+function field(name,label,value='',hint=''){return `<div class="field"><label for="${name}">${label}</label><input type="text" id="${name}" value="${esc(value)}"><span class="hint">${hint}</span></div>`}
+function sourceField(value=''){return field('source','Location',value)+`<div class="picker"><button type="button" onclick="send('pick',{folder:false,field:'source'})">Browse file</button><button type="button" onclick="send('pick',{folder:true,field:'source'})">Browse folder</button></div>`}
+function toggle(id,label,checked=false,disabled=false){return `<div class="toggle-row"><label for="${id}">${label}</label><input type="checkbox" class="switch" id="${id}" ${checked?'checked':''} ${disabled?'disabled':''} aria-label="${label}"></div>`}
+function backupDialog(){openModal('Create Backup',`<form id="form">${field('name','Name','backup-{year}-{month}-{day}','Placeholders: {year} {month} {day} {time}')}${sourceField()}<br>${toggle('zip','ZIP')}<span class="hint">Save to ${esc(state.config.BackupRoot)}. Use an existing folder name to add/update files.</span><button id="submit" class="primary">Create</button></form>`,'backup');$('form').onsubmit=e=>{e.preventDefault();start({name:$('name').value,source:$('source').value,zip:$('zip').checked})}}
+function profileDialog(profile={id:'',name:'backup-{year}-{month}-{day}',source:'',zip:false}){openModal(profile.id?'Edit Profile':'Create Profile',`<form id="form">${field('name','Profile name',profile.name,'Placeholders: {year} {month} {day} {time}<br>Dates only appear in ZIP or folder backup names.')}${sourceField(profile.source)}<br>${toggle('zip','ZIP',profile.zip)}${toggle('auto','Auto — unavailable',false,true)}<span class="hint">Click the saved profile to create a normal backup. Scheduling is unavailable.</span><button class="primary" id="submit">${profile.id?'Save':'Create'}</button></form>`,'profile');$('form').onsubmit=e=>{e.preventDefault();send('saveProfile',{id:profile.id,name:$('name').value,source:$('source').value,zip:$('zip').checked})}}
+function stamp(name){const d=new Date(),pad=n=>String(n).padStart(2,'0');const values={year:d.getFullYear(),month:pad(d.getMonth()+1),day:pad(d.getDate()),hour:pad(d.getHours()),minute:pad(d.getMinutes()),second:pad(d.getSeconds()),time:pad(d.getHours())+pad(d.getMinutes())+pad(d.getSeconds())};return name.replace(/\{(\w+)\}/g,(m,k)=>values[k]??m)}
+function start(request){
+ if(!request.name.trim()||!request.source.trim()){if($('modalError'))$('modalError').textContent='Enter a name and choose a source.';return;}
+ const generated=stamp(request.name), target=request.zip?generated.replace(/\.zip$/,'')+'.zip':generated;
+ const existing=state.backups.find(b=>b.name.toLowerCase()===target.toLowerCase());
+ if(existing&&!request.overwrite){openModal(request.zip?'Replace ZIP backup?':'Update existing backup?',`<p>${esc(target)} already exists.</p><p>${request.zip?'Replace this ZIP after the new archive has been verified?':'Add files and folders to this backup? Matching files follow your overwrite setting.'}</p><div class="actions"><button onclick="closeModal()">Cancel</button><button id="confirm" class="danger">${request.zip?'Confirm overwrite':'Confirm update'}</button></div>`,'overwrite');$('confirm').onclick=()=>{request.overwrite=true;send('start',request)};return;}
+ send('start',request);
+}
+function compressDialog(){const folders=state.backups.filter(b=>!b.zip);openModal('Compress Backup',`<form id="form"><div class="field"><label for="existing">Backup folder</label><select id="existing">${folders.map(b=>`<option>${esc(b.name)}</option>`).join('')}</select></div>${field('name','ZIP name',folders[0]?.name||'')}<span class="hint">The original folder stays intact. Compression level: ${state.config.CompressionLevel}.</span><button class="primary" id="submit" ${folders.length?'':'disabled'}>Compress</button></form>`,'compress');$('existing').onchange=()=>{$('name').value=$('existing').value};$('form').onsubmit=e=>{e.preventDefault();start({name:$('name').value,source:state.backupLocation+'\\'+$('existing').value,zip:true})};}
+// Rust resolves the configured backup folder for compression, rather than trusting a guessed EXE path.
+function renameDialog(backup){openModal('Rename Backup',`<form id="form">${field('name','Name',backup.name)}<button class="primary" id="submit">Save</button></form>`,'rename');$('form').onsubmit=e=>{e.preventDefault();send('renameBackup',{old:backup.name,name:$('name').value})}}
+function deleteDialog(type,item){openModal('Delete '+(type==='profile'?'Profile':'Backup'),`<p>Are you sure you want to delete <strong>${esc(item.name)}</strong>?</p>${type==='profile'?'<p class="hint">Existing backups will stay intact.</p>':''}<div class="actions"><button onclick="closeModal()">Cancel</button><button class="danger" id="confirm">Confirm</button></div>`,'delete');$('confirm').onclick=()=>send(type==='profile'?'deleteProfile':'deleteBackup',{id:item.id,name:item.name,confirmed:true})}
+function settingsDialog(){const c=state.config;openModal('Settings',`<form id="form"><div class="settings-grid"><div class="span2">${field('backupRoot','Backup folder',c.BackupRoot)}<div class="picker"><button type="button" onclick="send('pick',{folder:true,field:'backupRoot'})">Browse folder</button></div><br>${field('logRoot','Log folder',c.LogDirectory)}<div class="picker"><button type="button" onclick="send('pick',{folder:true,field:'logRoot'})">Browse folder</button></div><br></div><div class="field"><label for="compression">ZIP compression</label><div class="slider-line"><input type="range" id="compression" min="0" max="6" step="1" value="${[0,1,3,5,6,7,9].indexOf(c.CompressionLevel)}" oninput="this.nextElementSibling.value=[0,1,3,5,6,7,9][this.value]"><output>${c.CompressionLevel}</output></div><span class="hint">Default 6. Higher levels take more time.</span></div><div class="field"><label for="logCompression">Log compression</label><div class="slider-line"><input type="range" id="logCompression" min="0" max="9" value="${c.LogCompressionLevel}" oninput="this.nextElementSibling.value=this.value"><output>${c.LogCompressionLevel}</output></div></div><div class="span2">${field('dateFormat','Log date format',c.DateFormat,'{year} {month} {day} {hour} {minute} {second} {time}')}</div><div class="field"><label for="excludeFiles">Exclude files</label><textarea id="excludeFiles">${esc(c.ExcludeFiles?.join('\n'))}</textarea><span class="hint">One pattern per line, for example *.tmp.</span></div><div class="field"><label for="excludeFolders">Exclude folders</label><textarea id="excludeFolders">${esc(c.ExcludeFolders?.join('\n'))}</textarea><span class="hint">One name or pattern per line.</span></div><div class="span2">${toggle('overwrite','Overwrite matching files',c.OverwriteExistingFiles)}</div><div class="span2">${toggle('closeToTray','Close to tray',c.CloseToTray??true)}<span class="hint">Keep FileBackup running in the background when you close its window.</span></div><div class="span2">${toggle('trayNotifications','Tray notifications',c.TrayNotificationsEnabled??true)}<span class="hint">Show a Windows notification when FileBackup hides to the tray.</span></div><div class="span2 field"><label for="completedDismiss">Status dismissal (seconds)</label><input type="number" id="completedDismiss" min="0" max="3600" step="1" required value="${c.CompletedStatusDismissSeconds??5}"><span class="hint">Default 5. Completed, cancelled, and failed statuses dismiss after this delay. Set 0 to keep them visible.</span></div><div class="field"><label for="retries">Copy retries</label><input type="number" id="retries" min="0" max="100" value="${c.CopyRetries}"></div><div class="field"><label for="retryDelay">Retry delay (seconds)</label><input type="number" id="retryDelay" min="0" max="300" value="${c.RetryDelaySeconds}"></div></div><span class="hint">Changes apply to new jobs. Settings cannot change while a backup is running.</span><button class="primary" id="submit">Save</button></form>`,'settings',true);$('form').onsubmit=e=>{e.preventDefault();const lines=id=>$(id).value.split('\n').map(v=>v.trim()).filter(Boolean);send('saveSettings',{CompressionLevel:[0,1,3,5,6,7,9][Number($('compression').value)],LogCompressionLevel:Number($('logCompression').value),DateFormat:$('dateFormat').value,BackupRoot:$('backupRoot').value,LogDirectory:$('logRoot').value,ExcludeFiles:lines('excludeFiles'),ExcludeFolders:lines('excludeFolders'),OverwriteExistingFiles:$('overwrite').checked,CopyRetries:Number($('retries').value),RetryDelaySeconds:Number($('retryDelay').value),CloseToTray:$('closeToTray').checked,TrayNotificationsEnabled:$('trayNotifications').checked,CompletedStatusDismissSeconds:Number($('completedDismiss').value)})}}
+function size(bytes=0){for(const [unit,divisor] of [['GB',1073741824],['MB',1048576],['KB',1024]])if(bytes>=divisor)return(bytes/divisor).toFixed(2).replace(/\.00$/,'')+' '+unit;return bytes+' B'}
+function detailsDialog(id){
+ openModal('Backup Status','<div id="jobDetails" class="details"><strong id="jobTitle"></strong><progress id="jobProgress" class="progress-main" max="100"></progress><p id="jobPercent"></p><p>Source: <span id="jobSource"></span><br>Destination: <span id="jobDestination"></span></p><p>Files: <span id="jobFiles"></span><br>Processed: <span id="jobBytes"></span></p><div id="jobDetail" class="job-detail"></div><button id="cancelJob" class="primary danger">Cancel backup</button></div>','details',true);
+ detailId=id;$('cancelJob').onclick=()=>cancelDialog(id);updateDetails();
+}
+function updateDetails(){
+ const job=jobs.get(detailId);if(!job)return;
+ $('jobDetails').className='details '+job.state;
+ $('jobTitle').textContent=`${job.name} — ${job.state}`;
+ $('jobProgress').value=job.percent||0;$('jobPercent').textContent=(job.percent||0)+'%';
+ $('jobSource').textContent=job.source||'Scanning…';$('jobDestination').textContent=job.destination||'Preparing…';
+ $('jobFiles').textContent=`${job.files||0} / ${job.totalFiles||0}`;
+ $('jobBytes').textContent=`${size(job.bytes)} / ${size(job.totalBytes)}`;
+ $('jobDetail').textContent=job.detail||'';
+ $('cancelJob').hidden=job.state!=='running';$('cancelJob').disabled=!!job.cancelRequested;
+ $('cancelJob').textContent=job.cancelRequested?'Cancelling…':'Cancel backup';
+}
+function cancelDialog(id){
+ const job=jobs.get(id);if(!job||job.state!=='running'||job.cancelRequested)return;
+ openModal('Cancel Backup',`<p>Are you sure you want to cancel <strong>${esc(job.name||'Backup')}</strong>?</p><div class="actions"><button onclick="closeModal()">No</button><button id="confirmCancel" class="danger">Yes</button></div>`,'cancel');
+ $('confirmCancel').onclick=()=>{
+  const current=jobs.get(id);
+  if(current?.state==='running'&&!current.cancelRequested){current.cancelRequested=true;send('cancel',{id});renderJobs();}
+  closeModal();
+ };
+}function confirmExit(){openModal('Exit FileBackup?','<p>Backups are still running. Keep them running, or cancel them and exit after cleanup.</p><div class="actions"><button onclick="closeModal()">Keep running</button><button id="cancelAll" class="danger">Cancel backups and exit</button></div>','exit');$('cancelAll').onclick=()=>{send('exit',{confirmed:true});closeModal();toast('Cancelling backups before exiting.')}}
+let idleTimer, idleDeadline=0, uiIdle=false;
+function checkUiIdle(){
+ const remaining=idleDeadline-Date.now();
+ if(remaining>0){idleTimer=setTimeout(checkUiIdle,remaining);return;}
+ idleTimer=null;uiIdle=true;send('uiIdle');
+}
+function markUiActive(){
+ if(uiIdle){uiIdle=false;send('uiActive');}
+ idleDeadline=Date.now()+30000;
+ // Input updates the deadline without creating a timer on every pointer move.
+ if(idleTimer==null)idleTimer=setTimeout(checkUiIdle,30000);
+}
+for(const event of ['pointermove','pointerdown','keydown','focus'])window.addEventListener(event,markUiActive,{passive:true});
+window.addEventListener('DOMContentLoaded',()=>{send('ready');markUiActive();});
+</script></body></html>
+
+
+

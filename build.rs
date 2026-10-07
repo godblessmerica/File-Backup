@@ -9,15 +9,12 @@ fn main() {
         env::var_os("ProgramFiles(x86)").expect("Windows SDK requires ProgramFiles(x86)"),
     )
     .join("Windows Kits/10/bin");
-    let mut compilers: Vec<_> = fs::read_dir(sdk)
+    let compiler = fs::read_dir(sdk)
         .expect("Install the Windows SDK")
         .filter_map(|e| e.ok())
         .map(|e| e.path().join("x64/rc.exe"))
         .filter(|p| p.is_file())
-        .collect();
-    compilers.sort();
-    let compiler = compilers
-        .last()
+        .max()
         .expect("Windows SDK resource compiler not found");
     let output = PathBuf::from(env::var_os("OUT_DIR").unwrap()).join("filebackup.res");
     let status = Command::new(compiler)
