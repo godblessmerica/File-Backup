@@ -1,4 +1,4 @@
-# File Backup v0.3.0-alpha
+# File Backup v0.3.2-alpha
 
 > This project is in alpha and is intended for testing and feedback. It is still in development, features may change, and bugs are expected.
 
@@ -60,7 +60,7 @@ cargo build --release
 cargo test
 ```
 
-The compiled EXE is at `target\release\filebackup.exe`. The interface in `src/ui.html` and the icon assets are embedded during compilation; rebuild after changing them.
+The compiled EXE is at `target\release\filebackup-vX.X.X.exe`. The interface in `src/ui.html` and the icon assets are embedded during compilation; rebuild after changing them.
 
 ## Known limitations
 
