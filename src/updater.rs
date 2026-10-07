@@ -46,12 +46,21 @@ pub fn newer(release: &Release) -> Result<bool> {
 }
 impl Release {
     fn asset(&self) -> Result<&Asset> {
+        let release_version = version(&self.tag_name)?;
         let asset = self
             .assets
             .iter()
             .find(|a| a.name.eq_ignore_ascii_case("filebackup.exe"))
+            .or_else(|| self.assets.iter().find(|a| {
+                let name = a.name.to_ascii_lowercase();
+                ["filebackup-", "fileback-"].iter().any(|prefix| {
+                    name.strip_prefix(prefix)
+                        .and_then(|s| s.strip_suffix(".exe"))
+                        .is_some_and(|tag| version(tag).is_ok_and(|v| v == release_version))
+                })
+            }))
             .context(
-                "This release has no filebackup.exe. Open the release page to download manually.",
+                "This release has no matching FileBackup EXE. Open the release page to download manually.",
             )?;
         ensure!(
             asset.size >= 64 && asset.size <= LIMIT,
@@ -93,7 +102,7 @@ fn curl() -> Result<Command> {
         "--connect-timeout",
         "10",
         "--user-agent",
-        "FileBackup/0.3.1",
+        concat!("FileBackup/", env!("CARGO_PKG_VERSION")),
     ]);
     Ok(command)
 }
@@ -319,6 +328,37 @@ mod tests {
         let release = check().unwrap();
         println!("Newer release: {:?}", release.map(|r| r.tag_name));
     }
+    #[test]
+    fn versioned_release_asset_names_match_the_tag() {
+        for tag in ["v0.3.2-alpha", "v0.3.2-beta", "v0.3.2"] {
+            for prefix in ["filebackup", "fileback"] {
+                for named_version in [tag, tag.trim_start_matches('v')] {
+                    let mut r = release(tag);
+                    r.assets[0].name = format!("{prefix}-{named_version}.exe");
+                    assert!(r.asset().is_ok(), "{}", r.assets[0].name);
+                }
+            }
+        }
+        let mut r = release("v0.3.2-alpha");
+        for name in [
+            "fileback-v0.3.1-alpha.exe",
+            "filebackup-v0.3.2-beta.exe",
+            "unrelated-v0.3.2-alpha.exe",
+            "filebackup-v0.3.2-alpha.zip",
+        ] {
+            r.assets[0].name = name.into();
+            assert!(r.asset().is_err(), "{name}");
+        }
+        r.assets[0].name = "FILEBACK-V0.3.2-ALPHA.EXE".into();
+        assert!(r.asset().is_ok());
+        r.assets[0].digest = None;
+        assert!(r.asset().is_err());
+        let mut preferred = release("v0.3.2-alpha");
+        let mut named = preferred.assets[0].clone();
+        named.name = "fileback-v0.3.2-alpha.exe".into();
+        preferred.assets.insert(0, named);
+        assert_eq!(preferred.asset().unwrap().name, "filebackup.exe");
+    }
     fn release(tag: &str) -> Release {
         serde_json::from_value(serde_json::json!({"tag_name":tag,"assets":[{
             "name":"filebackup.exe","size":1024,"digest":format!("sha256:{}", "a".repeat(64)),
@@ -330,8 +370,9 @@ mod tests {
     fn update_versions_assets_and_checksum_are_validated() {
         assert!(!newer(&release("v0.2.1-alpha")).unwrap());
         assert!(!newer(&release("v0.3.1-alpha")).unwrap());
-        assert!(newer(&release("v0.3.1")).unwrap());
-        assert!(newer(&release("v0.3.2-alpha")).unwrap());
+        assert!(!newer(&release("v0.3.1")).unwrap());
+        assert!(!newer(&release("v0.3.2-alpha")).unwrap());
+        assert!(newer(&release("v0.3.2")).unwrap());
         assert!(newer(&release("v3.10.0")).unwrap());
         assert!(newer(&release("random")).is_err());
         let mut r = release("v3.1.0");

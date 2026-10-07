@@ -71,7 +71,7 @@ impl App {
             atomic_json(&path, &p)?;
             p
         };
-        audit(&root, &config, "User opened FileBackup v0.3.1 alpha")?;
+        audit(&root, &config, "User opened FileBackup v0.3.2 alpha")?;
         Ok(Self {
             root,
             config,
@@ -423,7 +423,7 @@ fn launch() -> Result<()> {
                 AllowSetForegroundWindow, FindWindowW, GetWindowThreadProcessId,
             },
         };
-        let title: Vec<u16> = "FileBackup v0.3.1 alpha"
+        let title: Vec<u16> = "FileBackup v0.3.2 alpha"
             .encode_utf16()
             .chain(Some(0))
             .collect();
@@ -470,7 +470,7 @@ fn launch() -> Result<()> {
         })?;
 
     let window = WindowBuilder::new()
-        .with_title("FileBackup v0.3.1 alpha")
+        .with_title("FileBackup v0.3.2 alpha")
         .with_window_icon(Some(tao::window::Icon::from_rgba(
             include_bytes!("../assets/icon.rgba").to_vec(),
             64,
