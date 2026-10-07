@@ -1,97 +1,72 @@
-# File Backup
-> This project is in alpha and is for testing and feedback it is not complete and may or may not change further. So expect bugs.
+# File Backup v0.3.0-alpha
 
-A lightweight .bat file for creating backups of important documents, folders, files and more!
+> This project is in alpha and is intended for testing and feedback. It is still in development, features may change, and bugs are expected.
 
-| Main menu | **Settings** |
+A lightweight Windows EXE for backing up documents, files, and folders.
+
+| Main menu | Settings |
 | --- | --- |
-| ![FileBackup main menu](assets/menu.png) | ![settings](assets/settings.png) |
-| **Profile** | **Backup** |
-| ![Profile](assets/profile.png) | ![Backup](assets/backup.png) |
-
+| ![FileBackup main menu](assets/menu.png) | ![FileBackup settings](assets/settings.png) |
+| **Create profile** | **Create backup** |
+| ![Create profile](assets/profile.png) | ![Create backup](assets/backup.png) |
 
 ## Features
 
-- Create folder backups or add files and folders to an existing backup.
-- Create ZIP backups from a source or compress an existing backup folder.
-- Rename and delete backup folders and ZIP archives.
-- Navigate menus with arrow keys and a branching folder view.
-- Show copy, compression, and archive verification progress.
-- Record timestamped events in compressed per-run logs.
-- Edit configuration directly from the application.
-- Configure storage locations, exclusions, overwrite behavior, compression, and copy retries.
+- **Folder and ZIP backups:** Choose a file or folder, name your backup, and copy it or create a ZIP.
+- **Profiles:** Save a source, name, and ZIP preference. Click a profile to run it; you can edit and/or delete it.
+- **Backup management:** Click a backup card to open it in File Explorer. You can edit and/or delete it.
+- **Multiple backups:** Run backups together with progress bars, file counts, and processed sizes. Conflicting destinations are locked.
+- **Backup status:** Click a status card for details. X cancels active backup, and dismisses finished failed or canceled notifications.
+- **Dismissal countdown:** Completed, cancelled, and failed statuses dismiss after **5 seconds** by default. Completion is green; cancellation and failure are red. Set the delay to **0** to keep them visible.
+- **Settings:** Use the gear to configure storage paths, compression, exclusions, overwriting, retries, tray behavior, notifications, and status dismissal. ZIP and log compression default to **6**.
+- **Date placeholders:** Names support `{year}`, `{month}`, `{day}`, `{hour}`, `{minute}`, `{second}`, and `{time}` (`HHmmss`). Generated backups include the dates; profile cards show the name without placeholders.
+- **System tray:** Closing the window hides it to the tray by default, with an optional notification. Click the tray icon to reopen or choose **Exit** from its menu. Tray behavior is configurable.
+- **Compressed logs:** Each run creates a timestamped `.log.gz` recording actions and exact setting changes with old/new values.
+- **GitHub updates:** Newer full releases appear as an update card. Click it to open GitHub, or **Update** to verify, replace the EXE, and restart. Running backups block updating; your data and settings are preserved. Prereleases are skipped.
+- **Popups:** Close with X, Escape, or an outside click.
+
+Automatic backups are shown in the interface but are unavailable.
 
 ## Requirements
 
-- Windows with Windows PowerShell 5.1 or later and Robocopy.
-- 7-Zip for ZIP backups and compressed logs. The application checks `PATH` and the usual `Program Files\7-Zip` installation locations.
-- Write access to the application directory and your configured backup/log locations.
+- 64-bit Windows with Robocopy and built-in curl.
+- Microsoft Edge WebView2 Runtime.
+- [7-Zip](https://www.7-zip.org/) for ZIP backups. FileBackup checks `PATH` and the usual installation locations.
+- Write access to the application folder and your backup/log locations.
 
 ## Getting started
-1. Grab the .bat from the  [latest release](https://github.com/godblessmerica/File-Backup/releases/latest)
-2. Put it in a separate folder
-- Example: C:\Users\user\filebackup-v0.2.0\ (this is where your backups will be stored as well)
-3. Run the .bat file and it will automatically create a backup and logs folder along with config and manager for the ui, zips, and logs.
-4. Select a action with arrow keys
 
-## Controls
+1. Download **filebackup.exe** from [Releases](https://github.com/godblessmerica/File-Backup/releases).
+2. Place it in its own folder, such as `C:\Users\admin\FileBackup\`.
+3. Run it. It creates `config.json`, `profiles.json`, `.backups`, `.logs`, and its `.webview` cache automatically.
+4. Click **Create a backup** or **Create a profile** to begin.
 
-| Key | Action |
-| --- | --- |
-| Up / Down | Move the highlighted selection |
-| Right Arrow / Enter | Select a menu option |
-| Left Arrow | Return to the previous question or menu |
-| Any key on a completion screen | Return to the main menu |
+Only the EXE is needed; no BAT, PowerShell manager, or source files are required.
 
-Choose **Exit** from the main menu to close the application.
-## Usage
+## Developers
 
-- **Upload:** add to an existing backup or create a new one. New folders use the source name; single files ask for a destination folder name. Duplicate new names are rejected.
-- **ZIP:** archive a source or an existing backup. Archives are verified, original folders remain, and existing ZIPs are protected from replacement.
-- **Rename / Delete:** select a backup folder or ZIP. Deletion is permanent and requires typing `DELETE`.
-- **View files:** browse folders or reveal files in File Explorer. Left Arrow goes up; at the root it returns to the menu. Paths start with `...\<application folder>\`; long headers use `║` below the path.
+Install [Rust](https://www.rust-lang.org/tools/install) with the **x86_64-pc-windows-msvc** toolchain and Visual Studio Build Tools with **Desktop development with C++** and the **Windows SDK**. The runtime requirements above also apply.
 
-Progress appears below **Running backup…**. Copy progress is per file. Completed progress stays visible for two seconds by default, then any key returns to the menu.
-
-## Configuration
-
-Use **Edit config** or edit `config.json`, then restart the application.
-
-| Settings | Purpose |
-| --- | --- |
-| `BackupRoot`, `LogDirectory` | Storage paths; default `.backups` and `.logs` |
-| `CompressionLevel`, `LogCompressionLevel` | ZIP and gzip levels: `0`, `1`, `3`, `5`, `6`,  `7`, `9`; default `6` |
-| `ExcludeFiles`, `ExcludeFolders` | Exclusion patterns, such as `*.tmp` or `cache` |
-| `OverwriteExistingFiles` | Update existing files (`true`) or only add missing files (`false`) |
-| `CopyRetries`, `RetryDelaySeconds` | Copy retries and delay; defaults `3` and `5` seconds |
-| `CompletionDelaySeconds` | Completed progress delay; default `2` seconds |
-| `DateFormat` | Log filename format; default `{year}-{month}-{day}_{hour}-{minute}-{second}` |
-
-Paths can be relative to the application directory or absolute. Escape backslashes in JSON, for example `"D:\\Backups"`. Enter exclusions as comma-separated patterns in the editor; blank clears the list.
-
-Date placeholders: `{year}`, `{month}`, `{day}`, `{hour}`, `{minute}`, `{second}`, and `{time}` (`HHmmss`). Use filename-safe separators; Windows filenames cannot contain `:`. Backup names do not receive timestamps.
-
-## Logs and troubleshooting
-
-Each run records timestamped events in `.logs`. Successful saves leave only `.log.gz`; a plain `.log` may appear while writing or remain if compression fails. Open compressed logs with 7-Zip.
-
-For failures, check the session log. For duplicate names, add to the existing backup or rename/delete it. Keep backup and log locations outside the source folder. Restart after changing settings.
-
-## Command-line copying
+Download or clone the source, then open PowerShell in the folder containing `Cargo.toml`:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\manager.ps1 -NonInteractive -Source "C:\Data\Project"
+# Build and run from source
+cargo run --release
+
+# Build the EXE without launching it
+cargo build --release
+
+# Run the Rust checks
+cargo test
 ```
 
-Add `-ExistingBackupName "Project"` to update an existing backup. `-BackupRoot` and `-LogDirectory` override configured paths. ZIP and management actions use the menu.
+The compiled EXE is at `target\release\filebackup.exe`. The interface in `src/ui.html` and the icon assets are embedded during compilation; rebuild after changing them.
 
-Scheduled backups are not included in this version.
+## Known limitations
 
+Files locked by another application may fail to back up. Cancelling a folder backup leaves files already copied; cancelling a ZIP preserves the previous archive.
 
-## Known Bugs
-
-- If file you want to backup is currently being used in another application the batch file will run into a error
-- This project is in alpha there is probably many bugs I'm unaware about please report them in [Issues](https://github.com/godblessmerica/File-Backup/issues)
+Please report bugs in [Issues](https://github.com/godblessmerica/File-Backup/issues).
 
 ## License
 
