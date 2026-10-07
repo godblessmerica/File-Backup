@@ -3,11 +3,11 @@
 
 A lightweight .bat file for creating backups of important documents, folders, files and more!
 
-| Main menu | **Browse files** |
+| Main menu | **Settings** |
 | --- | --- |
-| ![FileBackup main menu](assets/menu.png) | ![Browsing backup files](assets/viewfiles.png) |
-| **Create ZIP backup** | **Backup complete** |
-| ![Creating a ZIP backup](assets/newzip.png) | ![Backup completed](assets/complete.png) |
+| ![FileBackup main menu](assets/menu.png) | ![settings](assets/settings.png) |
+| **Profile** | **Backup** |
+| ![Profile](assets/profile.png) | ![Backup](assets/backup.png) |
 
 
 ## Features
